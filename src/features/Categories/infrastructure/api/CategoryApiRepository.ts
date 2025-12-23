@@ -37,11 +37,16 @@ export class CategoryApiRepository implements CategoryRepository{
   }
 
 
-  async update(idcategory: Category): Promise<Category> {
-    const res = await fetch(`${this.baseUrl}/update`, {
+  async update(id: number, category: Category): Promise<Category> {
+    const payload = { 
+      description: category.description,
+      percentage: category.percentage,
+      parent: category.parent
+    };
+    const res = await fetch(`${this.baseUrl}/update/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(idcategory),
+      body: JSON.stringify(payload),
     });
     return res.json();
   }

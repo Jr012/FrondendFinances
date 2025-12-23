@@ -29,13 +29,25 @@ export const TransactionForms: React.FC<Props> = ({
   onSuccess,
   transaction,
 }) => {
-  const [date, setDate] = useState("");
-  const [value, setValue] = useState<number>(0);
-  const [description, setDescription] = useState("");
+  //  Fecha por defecto: hoy si es nueva transacción
+  const [date, setDate] = useState(
+    transaction ? transaction.date : new Date().toISOString().split("T")[0]
+  );
 
-  // 🔹 Manejo dinámico de categorías
+  // Valor vacío si es nueva transacción
+  const [value, setValue] = useState<number | "">(
+    transaction ? transaction.value : ""
+  );
+
+  const [description, setDescription] = useState(
+    transaction ? transaction.description : ""
+  );
+
+  // Manejo dinámico de categorías
   const [levels, setLevels] = useState<Category[][]>([]);
-  const [selectedCategories, setSelectedCategories] = useState<Category[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<Category[]>(
+    transaction && transaction.category ? [transaction.category] : []
+  );
 
   useEffect(() => {
     if (transaction) {
@@ -44,18 +56,16 @@ export const TransactionForms: React.FC<Props> = ({
       setDescription(transaction.description);
       setSelectedCategories([transaction.category]);
     } else {
-      setDate("");
-      setValue(0);
+      setDate(new Date().toISOString().split("T")[0]); // fecha hoy
+      setValue(""); // valor vacío
       setDescription("");
       setSelectedCategories([]);
     }
   }, [transaction]);
 
-  // 👉 al abrir el modal, cargo las categorías raíz
+  // 🔹 El resto del código se mantiene igual...
   useEffect(() => {
-    if (open) {
-      loadRootCategories();
-    }
+    if (open) loadRootCategories();
   }, [open]);
 
   const loadRootCategories = async () => {
@@ -66,39 +76,29 @@ export const TransactionForms: React.FC<Props> = ({
   };
 
   const loadChildren = async (parentId: number, levelIndex: number) => {
-  const repo = new CategoryApiRepository();
-  const children = await repo.getChildrensByParentId(parentId);
+    const repo = new CategoryApiRepository();
+    const children = await repo.getChildrensByParentId(parentId);
 
-  const newLevels = levels.slice(0, levelIndex + 1);
-  if (children.length > 0) {
-    newLevels.push(children);
-  }
-  setLevels(newLevels);
+    const newLevels = levels.slice(0, levelIndex + 1);
+    if (children.length > 0) newLevels.push(children);
+    setLevels(newLevels);
 
-  // ❌ antes: cortabas la selección
-  // const newSelected = selectedCategories.slice(0, levelIndex + 1);
-  // setSelectedCategories(newSelected);
-
-  // ✅ ahora: conserva lo que ya seleccionaste
-  setSelectedCategories((prev) => {
-    const copy = [...prev];
-    copy.length = levelIndex + 1; // mantiene hasta el nivel actual
-    return copy;
-  });
-};
-
+    setSelectedCategories((prev) => {
+      const copy = [...prev];
+      copy.length = levelIndex + 1;
+      return copy;
+    });
+  };
 
   const handleCategoryChange = async (levelIndex: number, cat: Category | null) => {
-  setSelectedCategories((prev) => {
-    const newSelected = [...prev];
-    newSelected[levelIndex] = cat!;
-    return newSelected;
-  });
+    setSelectedCategories((prev) => {
+      const newSelected = [...prev];
+      newSelected[levelIndex] = cat!;
+      return newSelected;
+    });
 
-  if (cat) {
-    await loadChildren(cat.id, levelIndex);
-  }
-};
+    if (cat) await loadChildren(cat.id, levelIndex);
+  };
 
   const handleSubmit = async () => {
     try {
@@ -152,6 +152,7 @@ export const TransactionForms: React.FC<Props> = ({
           fullWidth
           value={value}
           onChange={(e) => setValue(Number(e.target.value))}
+          placeholder="Ingrese el valor" // 🔹 placeholder para que no aparezca 0
         />
         <TextField
           margin="dense"
@@ -162,7 +163,7 @@ export const TransactionForms: React.FC<Props> = ({
           onChange={(e) => setDescription(e.target.value)}
         />
 
-        {/* 🔹 Selects dinámicos con Autocomplete */}
+        {/* Selects dinámicos con Autocomplete */}
         {levels.map((categories, idx) => {
           const selectedCat = selectedCategories[idx] ?? null;
 
@@ -178,7 +179,7 @@ export const TransactionForms: React.FC<Props> = ({
               renderInput={(params) => (
                 <TextField
                   {...params}
-                   margin="dense"
+                  margin="dense"
                   fullWidth
                   label={idx === 0 ? "Categoría raíz" : `Subcategoría nivel ${idx}`}
                   placeholder={selectedCat ? selectedCat.description : "Seleccione..."}

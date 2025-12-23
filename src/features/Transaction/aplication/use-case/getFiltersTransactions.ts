@@ -8,9 +8,13 @@ export class GetFiltersTransactions {
     this.repo = repo;
   }
 
-  async execute(categoryId: number, month: number, year: number): Promise<Transaction[]> {
+  async execute(categoryId?: number, month?: number, year?: number): Promise<Transaction[]> {
     try {
-      return await this.repo.getFiltersTransactions(categoryId, month, year);
+    return this.repo.getFiltersTransactions(
+      categoryId ?? 0,   // 👈 default si viene undefined
+      month ?? 0,
+      year ?? 0
+    );
     } catch (error) {
       throw new Error("getFiltersTransactions error: " + (error as Error).message);
     }

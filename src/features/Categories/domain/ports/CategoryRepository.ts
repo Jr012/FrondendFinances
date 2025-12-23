@@ -6,7 +6,7 @@ export interface CategoryRepository{
     getChildrensByParentId(id: number): Promise<Category []>;  
     getCategoryById(id: number): Promise<Category | null>;   
     create(category: Category): Promise<Category>;
-    update(category: Category): Promise<Category>;
+    update(id: number,category: Category): Promise<Category>;
     delete(id: number): Promise<void>;
 
 }

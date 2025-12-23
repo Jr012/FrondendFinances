@@ -8,9 +8,9 @@ export class UpdateCategory {
     this.repo = repo;
   }
 
-  async execute(category: Category): Promise<Category> {
+  async execute(id: number,category: Partial<Category> | any): Promise<void> {
     try {
-      return await this.repo.update(category);
+      await this.repo.update(id, category);
     } catch (error) {
       throw new Error("Error actualizando categoría: " + (error as Error).message);
     }

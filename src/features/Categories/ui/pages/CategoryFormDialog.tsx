@@ -43,21 +43,30 @@ export const CategoryFormDialog: React.FC<Props> = ({
 
   const handleSubmit = async () => {
     try {
-      const payload: Category = {
-        id: category?.id ?? 0,
-        description,
-        percentage,
-        parent: parentId ?? undefined,
-      };  
+
+      let payload: Partial<Category>;
 
       if (category) {
+        payload = {
+          id: category.id,
+          description,
+          percentage,
+          parent: parentId ?? undefined,
+        };
         // Editar
+        console.log("Categoría actualizada:", payload);
         const useCase = new UpdateCategory(new CategoryApiRepository());
-        await useCase.execute(payload);
+        await useCase.execute(category.id, payload as Category);
       } else {
+        payload = {
+          description,
+          percentage,
+          parent: parentId ?? undefined,
+        };
         // Crear
+         console.log("Categoría creada:", payload);
         const useCase = new CreateCategory(new CategoryApiRepository());
-        await useCase.execute(payload);
+        await useCase.execute(payload as Category);   
       }
 
       onSuccess();

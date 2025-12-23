@@ -23,12 +23,17 @@ export class TransactionApiRepository implements TransactionRepository {
 
   async getFiltersTransactions(categoryId?: number, month?: number, year?: number): Promise<Transaction[]> {
   const params = new URLSearchParams();
+  const par = "";
 
-  if (categoryId !== undefined) params.append("categoryId", categoryId.toString());
-  if (month !== undefined) params.append("month", month.toString());
-  if (year !== undefined) params.append("year", year.toString());
+  if (categoryId){
+    if (categoryId !== undefined) params.append("categoryId", categoryId.toString());
+  }else{par}
+  if (month && month){
+    if (month !== undefined) params.append("month", month.toString());
+    if (year !== undefined) params.append("year", year.toString());
+  }else{par}
 
-  const response = await fetch(`/getFilters?${params.toString()}`);
+  const response = await fetch(`${this.apiUrl}/getFilters?${params.toString()}`);
   if (!response.ok) {
     throw new Error("Failed to fetch filtered transactions");
   }
@@ -85,7 +90,7 @@ async update(id: number, transaction: any): Promise<Transaction> {
 
 
   async delete(id: number): Promise<void> {
-    const response = await fetch(`${this.apiUrl}/transactions/${id}`, {
+    const response = await fetch(`${this.apiUrl}/delete/${id}`, {
       method: "DELETE",
     });
     if (!response.ok) {
